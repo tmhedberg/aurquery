@@ -14,19 +14,19 @@ import AURQuery.Types
 
 aurDirBasename = "aur"
 
-aurDir :: IO FilePath
-aurDir = fmap (</>aurDirBasename) (getEnv "HOME")
+aurDir :: Maybe FilePath -> IO FilePath
+aurDir = maybe (fmap (</>aurDirBasename) (getEnv "HOME")) return
 
-aurDirs :: IO [FilePath]
-aurDirs = do
-    ad <- aurDir
+aurDirs :: Maybe FilePath -> IO [FilePath]
+aurDirs base = do
+    ad <- aurDir base
     fmap sort $ getDirectoryContents ad
             >>= filterM (doesDirectoryExist . (ad</>))
             >>= filterM (return . not . isPrefixOf ".")
 
-installedPkgs :: IO [Package]
-installedPkgs = do
-    ads <- aurDirs
+installedPkgs :: Maybe FilePath -> IO [Package]
+installedPkgs base = do
+    ads <- aurDirs base
     vers <- forM ads $ \pname -> do
         devNull <- openFile "/dev/null" WriteMode
         (_, Just out, _, ph) <- createProcess
