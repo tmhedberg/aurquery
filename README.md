@@ -13,3 +13,8 @@ Building
     cabal install
 
 An AUR package for aurquery is on my to-do list.
+
+Known Issues
+------------
+
+Currently the tool determines the local version of the packages by spawning a bunch of Pacman processes and parsing their output. This is pretty inefficient. A better method would be to write FFI bindings to libalpm and query the local package database directly.
