@@ -17,9 +17,10 @@ pkgbuildURI pkg =
         ""
 
 pkgbuild :: String -> IO (Maybe String)
-pkgbuild pkg = do resp <- simpleHTTP $ Request (pkgbuildURI pkg) GET [] ""
-                  case resp of Right r@(rspCode -> (2, 0, 0)) -> return . Just $ rspBody r
-                               _ -> return Nothing
+pkgbuild pkg = do
+    resp <- simpleHTTP $ Request (pkgbuildURI pkg) GET [] ""
+    case resp of Right r@(rspCode -> (2, 0, 0)) -> return . Just $ rspBody r
+                 _ -> return Nothing
 
 remotePkg :: String -> IO (Maybe Package)
 remotePkg pkg = do
