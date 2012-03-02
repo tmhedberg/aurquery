@@ -1,7 +1,12 @@
-module Remote (pkgbuild) where
+{-# LANGUAGE ViewPatterns #-}
+
+module AURQuery.Remote (remotePkg) where
 
 import Network.HTTP
 import Network.URI
+
+import AURQuery.Pkgbuild
+import AURQuery.Types hiding (version)
 
 pkgbuildURI :: String -> URI
 pkgbuildURI pkg =
@@ -13,5 +18,11 @@ pkgbuildURI pkg =
 
 pkgbuild :: String -> IO (Maybe String)
 pkgbuild pkg = do resp <- simpleHTTP $ Request (pkgbuildURI pkg) GET [] ""
-                  case resp of Right r -> return . Just $ rspBody r
-                               Left _ -> return Nothing
+                  case resp of Right r@(rspCode -> (2, 0, 0)) -> return . Just $ rspBody r
+                               _ -> return Nothing
+
+remotePkg :: String -> IO (Maybe Package)
+remotePkg pkg = do
+    mpb <- pkgbuild pkg
+    return $ mpb >>= \v ->
+        if null v then Nothing else Just . Pkg pkg . parseVer $ version v

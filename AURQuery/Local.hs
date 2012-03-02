@@ -3,7 +3,6 @@ module AURQuery.Local (Package (..), installedPkgs) where
 import Control.Monad
 
 import Data.List
-import Data.Version
 
 import System.Directory
 import System.Environment
@@ -11,11 +10,9 @@ import System.FilePath
 import System.IO
 import System.Process
 
-import Text.ParserCombinators.ReadP
+import AURQuery.Types
 
 aurDirBasename = "aur"
-
-data Package = Pkg {name :: String, version :: Version}
 
 aurDir :: IO FilePath
 aurDir = fmap (</>aurDirBasename) (getEnv "HOME")
@@ -41,4 +38,4 @@ installedPkgs = do
                            . head
                            . filter (isPrefixOf "Version") . lines
                            $ pacOutput
-        return $ Pkg pname $ fst . last . readP_to_S parseVersion $ pver
+        return $ Pkg pname $ parseVer pver

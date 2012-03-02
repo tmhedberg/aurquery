@@ -1,4 +1,4 @@
-module Pkgbuild (version) where
+module AURQuery.Pkgbuild (version) where
 
 import Data.List
 
