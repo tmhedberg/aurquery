@@ -1,5 +1,6 @@
 import AURQuery.Local
 import AURQuery.Remote
+import AURQuery.Types
 
 import Control.Monad
 

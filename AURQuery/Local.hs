@@ -1,4 +1,4 @@
-module AURQuery.Local (Package (..), installedPkgs) where
+module AURQuery.Local (installedPkgs) where
 
 import Control.Monad
 
