@@ -18,10 +18,11 @@ aurDir :: IO FilePath
 aurDir = fmap (</>aurDirBasename) (getEnv "HOME")
 
 aurDirs :: IO [FilePath]
-aurDirs = do ad <- aurDir
-             fmap sort $ getDirectoryContents ad
-                     >>= filterM (doesDirectoryExist . (ad</>))
-                     >>= filterM (return . not . isPrefixOf ".")
+aurDirs = do
+    ad <- aurDir
+    fmap sort $ getDirectoryContents ad
+            >>= filterM (doesDirectoryExist . (ad</>))
+            >>= filterM (return . not . isPrefixOf ".")
 
 installedPkgs :: IO [Package]
 installedPkgs = do
