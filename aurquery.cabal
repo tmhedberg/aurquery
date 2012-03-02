@@ -10,7 +10,7 @@ Name:                aurquery
 Version:             1.0
 
 -- A short (one-line) description of the package.
--- Synopsis:            
+Synopsis: Query upgrade availability for Arch Linux AUR packages
 
 -- A longer description of the package.
 -- Description:         
