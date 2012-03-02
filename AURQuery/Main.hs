@@ -9,6 +9,12 @@ main = do
     ipkgs <- installedPkgs
     forM_ ipkgs $ \(Pkg pname lv) -> do
         mrp <- remotePkg pname
-        putStrLn $ pname ++ ": " ++ case mrp of
-            Just (Pkg _ rv) -> showVersion lv ++ " / " ++ showVersion rv
-            Nothing -> "NOT FOUND"
+        case mrp of
+            Just (Pkg _ rv) ->
+                when (rv > lv)
+                     (putStrLn $ pname
+                              ++ " ("
+                              ++ showVersion lv
+                              ++ " -> "
+                              ++ showVersion rv ++ ")")
+            Nothing -> putStrLn $ pname ++ ": NOT FOUND"
