@@ -28,9 +28,10 @@ installedPkgs = do
     ads <- aurDirs
     vers <- forM ads $ \pname -> do
         devNull <- openFile "/dev/null" WriteMode
-        (_, Just out, _, _) <- createProcess
+        (_, Just out, _, ph) <- createProcess
             (proc "/usr/bin/pacman" ["-Qi", pname])
                 {std_out = CreatePipe, std_err = UseHandle devNull}
+        _ <- waitForProcess ph
         hClose devNull
         hGetContents out
     forM (filter (not . null . snd) (zip ads vers)) $ \(pname, pacOutput) -> do
