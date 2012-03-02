@@ -1,10 +1,9 @@
-{-# LANGUAGE TupleSections #-}
-
-module Local (Package (..), installedPkgs) where
+module AURQuery.Local (Package (..), installedPkgs) where
 
 import Control.Monad
 
 import Data.List
+import Data.Version
 
 import System.Directory
 import System.Environment
@@ -12,9 +11,11 @@ import System.FilePath
 import System.IO
 import System.Process
 
+import Text.ParserCombinators.ReadP
+
 aurDirBasename = "aur"
 
-data Package = Pkg {name :: String, version :: String}
+data Package = Pkg {name :: String, version :: Version}
 
 aurDir :: IO FilePath
 aurDir = fmap (</>aurDirBasename) (getEnv "HOME")
@@ -28,16 +29,16 @@ aurDirs = do ad <- aurDir
 installedPkgs :: IO [Package]
 installedPkgs = do
     ads <- aurDirs
-    vers <- withFile "/dev/null" WriteMode $ \devNull -> 
-        forM ads $ \pname -> do
-            (_, Just out, _, _) <- createProcess
-                (proc "/usr/bin/pacman" ["-Qi", pname])
-                    {std_out = CreatePipe, std_err = CreatePipe}
-            hGetContents out
+    vers <- forM ads $ \pname -> do
+        devNull <- openFile "/dev/null" WriteMode
+        (_, Just out, _, _) <- createProcess
+            (proc "/usr/bin/pacman" ["-Qi", pname])
+                {std_out = CreatePipe, std_err = CreatePipe}
+        hClose devNull
+        hGetContents out
     forM (filter (not . null . snd) (zip ads vers)) $ \(pname, pacOutput) -> do
         let (':':' ':pver) = dropWhile (/=':')
                            . head
-                           . filter (isPrefixOf "Version")
-                           . lines
+                           . filter (isPrefixOf "Version") . lines
                            $ pacOutput
-        return $ Pkg pname pver
+        return $ Pkg pname $ fst . last . readP_to_S parseVersion $ pver

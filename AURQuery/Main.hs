@@ -1,5 +1,5 @@
 import Control.Arrow
 
-import Local
+import AURQuery.Local
 
 main = fmap (map $ name &&& version) installedPkgs >>= print
