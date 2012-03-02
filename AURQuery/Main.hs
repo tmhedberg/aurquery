@@ -15,8 +15,8 @@ main = do
                 when (rv > lv)
                      (putStrLn $ pname
                               ++ " ("
-                              ++ showVersion lv
+                              ++ showVersion (getVersion lv)
                               ++ " -> "
-                              ++ showVersion rv
+                              ++ showVersion (getVersion rv)
                               ++ ")")
             Nothing -> putStrLn $ pname ++ ": NOT FOUND"
