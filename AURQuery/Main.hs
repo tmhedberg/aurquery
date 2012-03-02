@@ -1,10 +1,10 @@
-import AURQuery.Local
-import AURQuery.Remote
-import AURQuery.Types
-
 import Control.Monad
 
 import Data.Version
+
+import AURQuery.Local
+import AURQuery.Remote
+import AURQuery.Types
 
 main = do
     ipkgs <- installedPkgs
@@ -17,5 +17,6 @@ main = do
                               ++ " ("
                               ++ showVersion lv
                               ++ " -> "
-                              ++ showVersion rv ++ ")")
+                              ++ showVersion rv
+                              ++ ")")
             Nothing -> putStrLn $ pname ++ ": NOT FOUND"
