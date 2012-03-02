@@ -16,5 +16,5 @@ instance Ord TaggedVersion where
 
 instance Show TaggedVersion where show = showVersion . getVersion
 
-parseVer :: String -> Version
-parseVer s = fst . last $ readP_to_S parseVersion s
+parseVer :: String -> TaggedVersion
+parseVer s = TVersion . fst . last $ readP_to_S parseVersion s

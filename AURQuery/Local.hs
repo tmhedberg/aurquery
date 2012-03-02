@@ -38,4 +38,4 @@ installedPkgs = do
                            . head
                            . filter (isPrefixOf "Version") . lines
                            $ pacOutput
-        return . Pkg pname . TVersion $ parseVer pver
+        return . Pkg pname $ parseVer pver

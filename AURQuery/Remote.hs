@@ -26,6 +26,4 @@ remotePkg :: String -> IO (Maybe Package)
 remotePkg pkg = do
     mpb <- pkgbuild pkg
     return $ mpb >>= \v ->
-        if null v
-            then Nothing
-            else Just . Pkg pkg . TVersion . parseVer $ version v
+        if null v then Nothing else Just . Pkg pkg . parseVer $ version v
