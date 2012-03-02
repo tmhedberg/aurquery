@@ -1,7 +1,5 @@
 import Control.Monad
 
-import Data.Version
-
 import AURQuery.Local
 import AURQuery.Remote
 import AURQuery.Types
@@ -15,8 +13,8 @@ main = do
                 when (rv > lv)
                      (putStrLn $ pname
                               ++ " ("
-                              ++ showVersion (getVersion lv)
+                              ++ show lv
                               ++ " -> "
-                              ++ showVersion (getVersion rv)
+                              ++ show rv
                               ++ ")")
             Nothing -> putStrLn $ pname ++ ": NOT FOUND"

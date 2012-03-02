@@ -14,5 +14,7 @@ instance Ord TaggedVersion where
                                  _ -> branchComparison
         where branchComparison = versionBranch v1 `compare` versionBranch v2
 
+instance Show TaggedVersion where show = showVersion . getVersion
+
 parseVer :: String -> Version
 parseVer s = fst . last $ readP_to_S parseVersion s
