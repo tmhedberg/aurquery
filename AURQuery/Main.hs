@@ -10,15 +10,15 @@ import AURQuery.Local
 import AURQuery.Remote
 import AURQuery.Types
 
-options = [ (Option
+options = [ Option
                 ['d']
                 ["aurdir"]
                 (ReqArg id "DIR")
-                "Directory where you extract AUR tarballs (default: $HOME/aur)")
-          , (Option ['h', '?']
-                    ["help"]
-                    (NoArg "HELP")
-                    "Display usage information")
+                "Directory where you extract AUR tarballs (default: $HOME/aur)"
+          , Option ['h', '?']
+                   ["help"]
+                   (NoArg "HELP")
+                   "Display usage information"
           ]
 
 main = do
