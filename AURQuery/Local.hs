@@ -30,7 +30,7 @@ installedPkgs = do
         devNull <- openFile "/dev/null" WriteMode
         (_, Just out, _, _) <- createProcess
             (proc "/usr/bin/pacman" ["-Qi", pname])
-                {std_out = CreatePipe, std_err = CreatePipe}
+                {std_out = CreatePipe, std_err = UseHandle devNull}
         hClose devNull
         hGetContents out
     forM (filter (not . null . snd) (zip ads vers)) $ \(pname, pacOutput) -> do
