@@ -1,5 +1,7 @@
 module AURQuery.Types where
 
+import Data.Char
+import Data.Functor
 import Data.Version
 
 import Text.ParserCombinators.ReadP
@@ -17,6 +19,14 @@ instance Ord TaggedVersion where
 instance Show TaggedVersion where show = showVersion . getVersion
 
 parseVer :: String -> Maybe TaggedVersion
-parseVer s = case readP_to_S parseVersion s of
-    [] -> Nothing
-    ps -> Just $ TVersion . fst $ last ps
+parseVer s
+    | length
+        (filter
+            (\c ->
+                not . or $ ($c) <$> [isAlphaNum, isSpace, flip elem ['.', '-']])
+            s)
+        > 0 =
+            Nothing
+    | otherwise = case readP_to_S parseVersion s of
+        [] -> Nothing
+        ps -> Just $ TVersion . fst $ last ps
