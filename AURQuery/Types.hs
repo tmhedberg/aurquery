@@ -1,32 +1,34 @@
-module AURQuery.Types where
+module AURQuery.Types (Package (..), TaggedVersion (..), parseVer) where
 
 import Data.Char
-import Data.Functor
+import Data.Monoid
+import Data.Ord
 import Data.Version
 
 import Text.ParserCombinators.ReadP
 
 data Package = Pkg {name :: String, version :: TaggedVersion}
 
-newtype TaggedVersion = TVersion {getVersion :: Version} deriving Eq
+data TaggedVersion = TVersion {getEpoch :: Int, getVersion :: Version}
+    deriving Eq
 
 instance Ord TaggedVersion where
-    TVersion v1 `compare` TVersion v2 =
-        case branchComparison of EQ -> versionTags v1 `compare` versionTags v2
-                                 _ -> branchComparison
-        where branchComparison = versionBranch v1 `compare` versionBranch v2
+    compare = comparing getEpoch
+           <> comparing getVersion
+           <> comparing (versionTags . getVersion)
 
-instance Show TaggedVersion where show = showVersion . getVersion
+instance Show TaggedVersion where
+    show (TVersion e v) = (if e /= 0 then show e ++ ":" else "")
+                       ++ showVersion v
 
 parseVer :: String -> Maybe TaggedVersion
-parseVer s
-    | length
-        (filter
-            (\c ->
-                not . or $ ($c) <$> [isAlphaNum, isSpace, flip elem ['.', '-']])
-            s)
-        > 0 =
-            Nothing
-    | otherwise = case readP_to_S parseVersion s of
-        [] -> Nothing
-        ps -> Just $ TVersion . fst $ last ps
+parseVer s = case readP_to_S parseTVersion s of [] -> Nothing
+                                                ps -> Just $ fst $ last ps
+
+parseEpoch :: ReadP Int
+parseEpoch = munch1 isDigit >>= \epoch -> char ':' >> return (read epoch)
+
+parseTVersion :: ReadP TaggedVersion
+parseTVersion = do epoch <- option 0 parseEpoch
+                   vers <- parseVersion
+                   return $ TVersion epoch vers
