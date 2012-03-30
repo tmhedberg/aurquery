@@ -23,6 +23,10 @@ options = [ Option
                    ["help"]
                    (NoArg "HELP")
                    "Display usage information"
+          , Option ['c']
+                   ["no-color"]
+                   (NoArg "NO_COLOR")
+                   "Do not colorize output"
           ]
 
 main = do
@@ -40,11 +44,16 @@ main = do
         setupTermFromEnv
             `catch` ((const $ setupTerm "dumb")
                          :: SetupTermError -> IO Terminal)
-    let printColor c = case getCapability term withForegroundColor of
-            Nothing -> putStrLn
-            Just wfg -> runTermOutput term . termText . wfg c . (++"\n")
+    let printColor c =
+            case ( getCapability term withForegroundColor
+                 , "NO_COLOR" `elem` opts
+                 ) of
+                (Just wfg, False) ->
+                    runTermOutput term . termText . wfg c . (++"\n")
+                _ -> putStrLn
 
-    ipkgs <- installedPkgs $ listToMaybe $ filter (/="HELP") opts
+    ipkgs <- installedPkgs $ listToMaybe $
+        filter (\o -> o /= "HELP" && o /= "NO_COLOR") opts
     forM_ ipkgs $ \(Pkg pname lv) -> do
         mrp <- remotePkg pname
         case mrp of
