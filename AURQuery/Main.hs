@@ -9,6 +9,7 @@ import System.Console.GetOpt
 import System.Console.Terminfo
 import System.Environment
 import System.Exit
+import System.IO
 
 import AURQuery.Local
 import AURQuery.Remote
@@ -44,11 +45,13 @@ main = do
         setupTermFromEnv
             `catch` ((const $ setupTerm "dumb")
                          :: SetupTermError -> IO Terminal)
+    isatty <- hIsTerminalDevice stdout
     let printColor c =
             case ( getCapability term withForegroundColor
                  , "NO_COLOR" `elem` opts
+                 , isatty
                  ) of
-                (Just wfg, False) ->
+                (Just wfg, False, True) ->
                     runTermOutput term . termText . wfg c . (++"\n")
                 _ -> putStrLn
 
