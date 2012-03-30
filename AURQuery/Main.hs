@@ -18,23 +18,29 @@ import AURQuery.Types
 options = [ Option
                 ['d']
                 ["aurdir"]
-                (ReqArg id "DIR")
+                (ReqArg AURDir "DIR")
                 "Directory where you extract AUR tarballs (default: $HOME/aur)"
           , Option ['h', '?']
                    ["help"]
-                   (NoArg "HELP")
+                   (NoArg Help)
                    "Display usage information"
           , Option ['c']
                    ["no-color"]
-                   (NoArg "NO_COLOR")
+                   (NoArg NoColor)
                    "Do not colorize output"
           ]
+
+data Option = AURDir String | Help | NoColor deriving Eq
+
+getAURDirOpt :: [Option] -> Maybe String
+getAURDirOpt = listToMaybe . catMaybes . map (\o -> case o of AURDir s -> Just s
+                                                              _ -> Nothing)
 
 main = do
 
     (opts, _, _) <- fmap (getOpt Permute options) getArgs
     when
-        ("HELP" `elem` opts)
+        (Help `elem` opts)
         (getProgName
             >>= (\pn ->
                     putStr $
@@ -48,15 +54,14 @@ main = do
     isatty <- hIsTerminalDevice stdout
     let printColor c =
             case ( getCapability term withForegroundColor
-                 , "NO_COLOR" `elem` opts
+                 , NoColor `elem` opts
                  , isatty
                  ) of
                 (Just wfg, False, True) ->
                     runTermOutput term . termText . wfg c . (++"\n")
                 _ -> putStrLn
 
-    ipkgs <- installedPkgs $ listToMaybe $
-        filter (\o -> o /= "HELP" && o /= "NO_COLOR") opts
+    ipkgs <- installedPkgs $ getAURDirOpt opts
     forM_ ipkgs $ \(Pkg pname lv) -> do
         mrp <- remotePkg pname
         case mrp of
