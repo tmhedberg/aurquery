@@ -1,4 +1,9 @@
-module AURQuery.Types (Package (..), TaggedVersion (..), parseVer) where
+module AURQuery.Types ( Package (..)
+                      , TaggedVersion (..)
+                      , branch
+                      , majVer
+                      , parseVer
+                      ) where
 
 import Data.Char
 import Data.Monoid
@@ -32,3 +37,9 @@ parseTVersion :: ReadP TaggedVersion
 parseTVersion = do epoch <- option 0 parseEpoch
                    vers <- parseVersion
                    return $ TVersion epoch vers
+
+branch :: TaggedVersion -> [Int]
+branch = versionBranch . getVersion
+
+majVer :: TaggedVersion -> Int
+majVer = head . branch
