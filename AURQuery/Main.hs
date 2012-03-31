@@ -40,13 +40,12 @@ getAURDirOpt = listToMaybe . catMaybes . map (\o -> case o of AURDir s -> Just s
 main = do
 
     (opts, _, _) <- fmap (getOpt Permute options) getArgs
-    when
-        (Help `elem` opts)
-        (getProgName
+    when (Help `elem` opts) $
+        getProgName
             >>= (\pn ->
                     putStr $
                         usageInfo ("Usage: " ++ pn ++ " [<options>]") options)
-            >> exitSuccess)
+            >> exitSuccess
 
     term <-
         setupTermFromEnv
