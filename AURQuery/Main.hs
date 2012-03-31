@@ -3,6 +3,7 @@ import Prelude hiding (catch)
 import Control.Exception
 import Control.Monad
 
+import Data.Function
 import Data.Maybe
 
 import System.Console.GetOpt
@@ -68,9 +69,10 @@ main = do
             Just (Pkg _ rv) ->
                 when (rv > lv) $
                     printColor
-                        (if getEpoch rv > getEpoch lv then Red
-                         else if majVer rv > majVer lv then Yellow
-                         else if branch rv > branch lv then Blue
-                         else Green)
+                        (let gton f = ((>) `on` f) rv lv
+                         in if gton getEpoch then Red
+                            else if gton majVer then Yellow
+                            else if gton branch then Blue
+                            else Green)
                         (pname ++ " (" ++ show lv ++ " -> " ++ show rv ++ ")")
             Nothing -> putStrLn $ pname ++ ": NOT FOUND"
