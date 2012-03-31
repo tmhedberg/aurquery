@@ -23,9 +23,13 @@ options = [ Option
                 "Directory where you extract AUR tarballs (default: $HOME/aur)"
           , Option ['h', '?'] ["help"] (NoArg Help) "Display usage information"
           , Option ['c'] ["no-color"] (NoArg NoColor) "Do not colorize output"
+          , Option ['l']
+                   ["list-installed"]
+                   (NoArg ListInstalled)
+                   "List installed AUR packages"
           ]
 
-data Option = AURDir String | Help | NoColor deriving Eq
+data Option = AURDir String | Help | NoColor | ListInstalled deriving Eq
 
 getAURDirOpt :: [Option] -> Maybe String
 getAURDirOpt = listToMaybe . catMaybes . map (\o -> case o of AURDir s -> Just s
@@ -34,12 +38,16 @@ getAURDirOpt = listToMaybe . catMaybes . map (\o -> case o of AURDir s -> Just s
 main = do
 
     (opts, _, _) <- fmap (getOpt Permute options) getArgs
+
     when (Help `elem` opts) $
         getProgName
             >>= (\pn ->
                     putStr $
                         usageInfo ("Usage: " ++ pn ++ " [<options>]") options)
             >> exitSuccess
+
+    ipkgs <- installedPkgs $ getAURDirOpt opts
+    when (ListInstalled `elem` opts) (mapM print ipkgs >> exitSuccess)
 
     term <-
         setupTermFromEnv
@@ -55,7 +63,6 @@ main = do
                     runTermOutput term . termText . wfg c . (++"\n")
                 _ -> putStrLn
 
-    ipkgs <- installedPkgs $ getAURDirOpt opts
     forM_ ipkgs $ \(Pkg pname lv) -> do
         mrp <- remotePkg pname
         case mrp of
