@@ -72,7 +72,7 @@ main = do
                         (let gton f = ((>) `on` f) rv lv
                          in if gton getEpoch then Red
                             else if gton majVer then Yellow
-                            else if gton branch then Blue
+                            else if gton branch then Cyan
                             else Green)
                         (pname ++ " (" ++ show lv ++ " -> " ++ show rv ++ ")")
             Nothing -> putStrLn $ pname ++ ": NOT FOUND"
