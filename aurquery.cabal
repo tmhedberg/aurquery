@@ -48,7 +48,8 @@ Executable aurquery
   Main-is: AURQuery/Main.hs
   
   -- Packages needed in order to build this package.
-  Build-depends: HTTP, base >= 4 && < 5, directory, filepath, network, process, terminfo
+  Build-depends: base >= 4 && < 5, directory, filepath, HTTP, network, process,
+                 terminfo
   
   -- Modules not exported by this package.
   -- Other-modules:       
