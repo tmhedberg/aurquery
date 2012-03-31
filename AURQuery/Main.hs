@@ -21,14 +21,8 @@ options = [ Option
                 ["aurdir"]
                 (ReqArg AURDir "DIR")
                 "Directory where you extract AUR tarballs (default: $HOME/aur)"
-          , Option ['h', '?']
-                   ["help"]
-                   (NoArg Help)
-                   "Display usage information"
-          , Option ['c']
-                   ["no-color"]
-                   (NoArg NoColor)
-                   "Do not colorize output"
+          , Option ['h', '?'] ["help"] (NoArg Help) "Display usage information"
+          , Option ['c'] ["no-color"] (NoArg NoColor) "Do not colorize output"
           ]
 
 data Option = AURDir String | Help | NoColor deriving Eq
