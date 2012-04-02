@@ -29,8 +29,9 @@ instance Show TaggedVersion where
                        ++ showVersion v
 
 parseVer :: String -> Maybe TaggedVersion
-parseVer s = case readP_to_S parseTVersion s of [] -> Nothing
-                                                ps -> Just $ fst $ last ps
+parseVer s = case readP_to_S parseTVersion s of
+    [] -> Nothing
+    ps -> let v = fst $ last ps in if show v == s then Just v else Nothing
 
 parseEpoch :: ReadP Int
 parseEpoch = munch1 isDigit >>= \epoch -> char ':' >> return (read epoch)
