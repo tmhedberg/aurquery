@@ -53,5 +53,5 @@ installedPkgs base = do
                                     ++ pver
                                     ++ ")") >>
                             return Nothing
-                        Just v -> return . Just $ Pkg pname v
+                        Just v -> return . Just $ Pkg pname $ Right v
     return $ map fromJust $ filter isJust mpkgs

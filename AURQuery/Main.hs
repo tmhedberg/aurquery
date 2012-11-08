@@ -65,8 +65,13 @@ main = do
 
     forM_ ipkgs $ \(Pkg pname lv) -> do
         mrp <- remotePkg pname
-        case mrp of
-            Just (Pkg _ rv) ->
+        case (mrp, lv) of
+            (Nothing, _) -> putStrLn $ pname ++ ": NOT FOUND"
+            (Just (Pkg _ (Right rv)), Left lvStr) ->
+                when (show rv /= lvStr) $
+                    printColor White $
+                        pname ++ " (" ++ show lv ++ " -> " ++ show rv ++ ")"
+            (Just (Pkg _ (Right rv)), Right lv) ->
                 when (rv > lv) $
                     printColor
                         (let gton f = ((>) `on` f) rv lv
@@ -75,4 +80,3 @@ main = do
                             else if gton branch then Cyan
                             else Green)
                         (pname ++ " (" ++ show lv ++ " -> " ++ show rv ++ ")")
-            Nothing -> putStrLn $ pname ++ ": NOT FOUND"
