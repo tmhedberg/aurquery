@@ -29,13 +29,23 @@ options = [ Option
                 "Directory where you extract AUR tarballs (default: $HOME/aur)"
           , Option ['h', '?'] ["help"] (NoArg Help) "Display usage information"
           , Option ['c'] ["no-color"] (NoArg NoColor) "Do not colorize output"
+          , Option
+                ['o']
+                ["only-parsable-versions"]
+                (NoArg OnlyParsableVersions)
+                "Do not display packages whose version strings cannot be parsed"
           , Option ['l']
                    ["list-installed"]
                    (NoArg ListInstalled)
                    "List installed AUR packages"
           ]
 
-data Option = AURDir String | Help | NoColor | ListInstalled deriving Eq
+data Option = AURDir String
+            | Help
+            | NoColor
+            | OnlyParsableVersions
+            | ListInstalled
+    deriving Eq
 
 getAURDirOpt :: [Option] -> Maybe String
 getAURDirOpt = listToMaybe . catMaybes . map (\o -> case o of AURDir s -> Just s
@@ -69,6 +79,7 @@ main = do
                     runTermOutput term . termText . wfg c . (++"\n")
                 _ -> putStrLn
 
+    let whenPrintUnparseable = unless $ OnlyParsableVersions `elem` opts
     bracket (newManager def) closeManager $ \httpMgr ->
         forM_ ipkgs $ \(Pkg pname e_lv) -> do
 
@@ -86,10 +97,11 @@ main = do
             case (mrp, e_lv) of
                 (Nothing, _) -> putStrLn $ pname ++ ": NOT FOUND"
                 (Just (Pkg _ (Left rvStr)), Left lvStr) ->
-                    printPkgVersionChange White lvStr rvStr
-                (Just (Pkg _ (Right rv)), Left lvStr) ->
+                    whenPrintUnparseable $
+                        printPkgVersionChange White lvStr rvStr
+                (Just (Pkg _ (Right rv)), Left lvStr) -> whenPrintUnparseable $
                     printPkgVersionChange White lvStr $ show rv
-                (Just (Pkg _ (Left rvStr)), Right lv) ->
+                (Just (Pkg _ (Left rvStr)), Right lv) -> whenPrintUnparseable $
                     printPkgVersionChange White (show lv) rvStr
                 (Just (Pkg _ (Right rv)), Right lv) ->
                     printPkgVersionChange (verDeltaColor lv rv)
