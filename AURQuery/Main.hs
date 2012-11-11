@@ -1,10 +1,13 @@
-import Prelude hiding (catch)
+import Prelude
 
 import Control.Exception
 import Control.Monad
 
+import Data.Default
 import Data.Function
 import Data.Maybe
+
+import Network.HTTP.Conduit
 
 import System.Console.GetOpt
 import System.Console.Terminfo
@@ -63,16 +66,22 @@ main = do
                     runTermOutput term . termText . wfg c . (++"\n")
                 _ -> putStrLn
 
-    forM_ ipkgs $ \(Pkg pname lv) -> do
-        mrp <- remotePkg pname
-        case mrp of
-            Just (Pkg _ rv) ->
-                when (rv > lv) $
-                    printColor
-                        (let gton f = ((>) `on` f) rv lv
-                         in if gton getEpoch then Red
-                            else if gton majVer then Yellow
-                            else if gton branch then Cyan
-                            else Green)
-                        (pname ++ " (" ++ show lv ++ " -> " ++ show rv ++ ")")
-            Nothing -> putStrLn $ pname ++ ": NOT FOUND"
+    bracket (newManager def) closeManager $ \httpMgr ->
+        forM_ ipkgs $ \(Pkg pname lv) -> do
+            mrp <- remotePkg httpMgr pname
+            case mrp of
+                Just (Pkg _ rv) ->
+                    when (rv > lv) $
+                        printColor
+                            (let gton f = ((>) `on` f) rv lv
+                             in if gton getEpoch then Red
+                                else if gton majVer then Yellow
+                                else if gton branch then Cyan
+                                else Green)
+                            (pname
+                                ++ " ("
+                                ++ show lv
+                                ++ " -> "
+                                ++ show rv
+                                ++ ")")
+                Nothing -> putStrLn $ pname ++ ": NOT FOUND"
