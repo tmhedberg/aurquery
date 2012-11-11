@@ -14,7 +14,8 @@ import Text.ParserCombinators.ReadP
 
 data Package = Pkg {name :: String, version :: Either String TaggedVersion}
 
-instance Show Package where show p = name p ++ " (" ++ show (version p) ++ ")"
+instance Show Package where
+    show p = name p ++ " (" ++ either id show (version p) ++ ")"
 
 data TaggedVersion = TVersion {getEpoch :: Int, getVersion :: Version}
     deriving Eq
