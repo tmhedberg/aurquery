@@ -7,6 +7,7 @@ import Control.Monad
 
 import Data.Default
 import Data.Function
+import Data.List
 import Data.Maybe
 
 import Network.HTTP.Conduit
@@ -20,6 +21,8 @@ import System.IO
 import AURQuery.Local
 import AURQuery.Remote
 import AURQuery.Types
+
+vcsSuffixes = ["cvs", "svn", "git", "hg", "bzr", "darcs"]
 
 options = [ Option
                 ['d']
@@ -72,7 +75,7 @@ main = do
         forM_ ipkgs $ \(Pkg pname e_lv) -> do
 
             let printPkgVersionChange color localVer remoteVer =
-                    when (localVer /= remoteVer) $
+                    when (localVer /= remoteVer && not (isVCSPackage pname)) $
                         printColor color $ pname
                                         ++ " ("
                                         ++ localVer
@@ -101,3 +104,6 @@ verDeltaColor lv rv = let gton f = ((>) `on` f) rv lv
                             | gton majVer -> Yellow
                             | gton branch -> Cyan
                             | otherwise -> Green
+
+isVCSPackage :: String -> Bool
+isVCSPackage pname = any (flip isSuffixOf pname . ('-':)) vcsSuffixes
