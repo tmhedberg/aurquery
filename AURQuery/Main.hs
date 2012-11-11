@@ -1,5 +1,3 @@
-{-# LANGUAGE MultiWayIf #-}
-
 import Prelude
 
 import Control.Exception
@@ -99,11 +97,11 @@ main = do
                                           (show rv)
 
 verDeltaColor :: TaggedVersion -> TaggedVersion -> Color
-verDeltaColor lv rv = let gton f = ((>) `on` f) rv lv
-                      in if | gton getEpoch -> Red
-                            | gton majVer -> Yellow
-                            | gton branch -> Cyan
-                            | otherwise -> Green
+verDeltaColor lv rv | gton getEpoch = Red
+                    | gton majVer = Yellow
+                    | gton branch = Cyan
+                    | otherwise = Green
+    where gton f = ((>) `on` f) rv lv
 
 isVCSPackage :: String -> Bool
 isVCSPackage pname = any (flip isSuffixOf pname . ('-':)) vcsSuffixes
