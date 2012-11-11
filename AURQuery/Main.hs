@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiWayIf #-}
+
 import Prelude
 
 import Control.Exception
@@ -67,25 +69,35 @@ main = do
                 _ -> putStrLn
 
     bracket (newManager def) closeManager $ \httpMgr ->
-        forM_ ipkgs $ \(Pkg pname lv) -> do
+        forM_ ipkgs $ \(Pkg pname e_lv) -> do
+
+            let printPkgVersionChange color localVer remoteVer =
+                    when (localVer /= remoteVer) $
+                        printColor color $ pname
+                                        ++ " ("
+                                        ++ localVer
+                                        ++ " -> "
+                                        ++ remoteVer
+                                        ++ ")"
+
             mrp <- remotePkg httpMgr pname
-            case (mrp, lv) of
+
+            case (mrp, e_lv) of
                 (Nothing, _) -> putStrLn $ pname ++ ": NOT FOUND"
+                (Just (Pkg _ (Left rvStr)), Left lvStr) ->
+                    printPkgVersionChange White lvStr rvStr
                 (Just (Pkg _ (Right rv)), Left lvStr) ->
-                    when (show rv /= lvStr) $
-                        printColor White $
-                            pname ++ " (" ++ show lv ++ " -> " ++ show rv ++ ")"
+                    printPkgVersionChange White lvStr $ show rv
+                (Just (Pkg _ (Left rvStr)), Right lv) ->
+                    printPkgVersionChange White (show lv) rvStr
                 (Just (Pkg _ (Right rv)), Right lv) ->
-                    when (rv > lv) $
-                        printColor
-                            (let gton f = ((>) `on` f) rv lv
-                             in if gton getEpoch then Red
-                                else if gton majVer then Yellow
-                                else if gton branch then Cyan
-                                else Green)
-                            (pname
-                                ++ " ("
-                                ++ show lv
-                                ++ " -> "
-                                ++ show rv
-                                ++ ")")
+                    printPkgVersionChange (verDeltaColor lv rv)
+                                          (show lv)
+                                          (show rv)
+
+verDeltaColor :: TaggedVersion -> TaggedVersion -> Color
+verDeltaColor lv rv = let gton f = ((>) `on` f) rv lv
+                      in if | gton getEpoch -> Red
+                            | gton majVer -> Yellow
+                            | gton branch -> Cyan
+                            | otherwise -> Green
