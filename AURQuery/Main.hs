@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiWayIf #-}
+
 import Prelude
 
 import Control.Exception
@@ -5,6 +7,7 @@ import Control.Monad
 
 import Data.Default
 import Data.Function
+import Data.List
 import Data.Maybe
 
 import Network.HTTP.Conduit
@@ -18,6 +21,8 @@ import System.IO
 import AURQuery.Local
 import AURQuery.Remote
 import AURQuery.Types
+
+vcsSuffixes = ["cvs", "svn", "git", "hg", "bzr", "darcs"]
 
 options = [ Option
                 ['d']
@@ -67,21 +72,38 @@ main = do
                 _ -> putStrLn
 
     bracket (newManager def) closeManager $ \httpMgr ->
-        forM_ ipkgs $ \(Pkg pname lv) -> do
+        forM_ ipkgs $ \(Pkg pname e_lv) -> do
+
+            let printPkgVersionChange color localVer remoteVer =
+                    when (localVer /= remoteVer && not (isVCSPackage pname)) $
+                        printColor color $ pname
+                                        ++ " ("
+                                        ++ localVer
+                                        ++ " -> "
+                                        ++ remoteVer
+                                        ++ ")"
+
             mrp <- remotePkg httpMgr pname
-            case mrp of
-                Just (Pkg _ rv) ->
-                    when (rv > lv) $
-                        printColor
-                            (let gton f = ((>) `on` f) rv lv
-                             in if gton getEpoch then Red
-                                else if gton majVer then Yellow
-                                else if gton branch then Cyan
-                                else Green)
-                            (pname
-                                ++ " ("
-                                ++ show lv
-                                ++ " -> "
-                                ++ show rv
-                                ++ ")")
-                Nothing -> putStrLn $ pname ++ ": NOT FOUND"
+
+            case (mrp, e_lv) of
+                (Nothing, _) -> putStrLn $ pname ++ ": NOT FOUND"
+                (Just (Pkg _ (Left rvStr)), Left lvStr) ->
+                    printPkgVersionChange White lvStr rvStr
+                (Just (Pkg _ (Right rv)), Left lvStr) ->
+                    printPkgVersionChange White lvStr $ show rv
+                (Just (Pkg _ (Left rvStr)), Right lv) ->
+                    printPkgVersionChange White (show lv) rvStr
+                (Just (Pkg _ (Right rv)), Right lv) ->
+                    printPkgVersionChange (verDeltaColor lv rv)
+                                          (show lv)
+                                          (show rv)
+
+verDeltaColor :: TaggedVersion -> TaggedVersion -> Color
+verDeltaColor lv rv = let gton f = ((>) `on` f) rv lv
+                      in if | gton getEpoch -> Red
+                            | gton majVer -> Yellow
+                            | gton branch -> Cyan
+                            | otherwise -> Green
+
+isVCSPackage :: String -> Bool
+isVCSPackage pname = any (flip isSuffixOf pname . ('-':)) vcsSuffixes
