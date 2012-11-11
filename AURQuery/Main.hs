@@ -1,5 +1,3 @@
-import Prelude
-
 import Control.Exception
 import Control.Monad
 
