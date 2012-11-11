@@ -3,7 +3,6 @@ module AURQuery.Local (installedPkgs) where
 import Control.Monad
 
 import Data.List
-import Data.Maybe
 
 import System.Directory
 import System.Environment
@@ -36,22 +35,10 @@ installedPkgs base = do
         _ <- waitForProcess ph
         hClose devNull
         hGetContents out
-    mpkgs <- forM (filter (not . null . snd) (zip ads vers))
-                $ \(pname, pacOutput) -> do
-                    let (':':' ':pver) = dropWhile (/=':')
-                                       . head
-                                       . filter (isPrefixOf "Version")
-                                       . lines
-                                       $ pacOutput
-                    case parseVer pver of
-                        Nothing ->
-                            hPutStrLn
-                                stderr
-                                ("Unable to parse version: "
-                                    ++ pname
-                                    ++ " ("
-                                    ++ pver
-                                    ++ ")") >>
-                            return Nothing
-                        Just v -> return . Just $ Pkg pname $ Right v
-    return $ map fromJust $ filter isJust mpkgs
+    forM (filter (not . null . snd) (zip ads vers)) $ \(pname, pacOutput) -> do
+        let (':':' ':pver) = dropWhile (/=':')
+                           . head
+                           . filter (isPrefixOf "Version")
+                           . lines
+                           $ pacOutput
+        return $ Pkg pname $ maybe (Left pver) Right (parseVer pver)

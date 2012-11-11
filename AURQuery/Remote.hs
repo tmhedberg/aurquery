@@ -28,5 +28,11 @@ pkgbuild mgr pkg = runResourceT $ do
 remotePkg :: Manager -> String -> IO (Maybe Package)
 remotePkg mgr pkg = do
     mpb <- pkgbuild mgr pkg
-    return $ mpb >>= \v ->
-        if null v then Nothing else parseVer (version v) >>= Just . Pkg pkg . Right
+    return $
+        mpb >>= \v ->
+            if null v
+                then Nothing
+                else Just . Pkg pkg $ let ver = version v
+                                      in maybe (Left $ ver)
+                                               Right
+                                               (parseVer $ ver)
