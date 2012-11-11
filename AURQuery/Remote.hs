@@ -1,5 +1,3 @@
-{-# LANGUAGE ViewPatterns #-}
-
 module AURQuery.Remote (remotePkg) where
 
 import Control.Monad.Trans.Resource
