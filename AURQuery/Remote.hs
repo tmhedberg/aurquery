@@ -1,29 +1,32 @@
-{-# LANGUAGE ViewPatterns #-}
-
 module AURQuery.Remote (remotePkg) where
 
-import Network.HTTP
-import Network.URI
+import Control.Monad.Trans.Resource
+
+import Data.ByteString.Lazy.UTF8 hiding (take)
+
+import Network.HTTP.Conduit
+import Network.HTTP.Types.Status
 
 import AURQuery.Pkgbuild
 import AURQuery.Types hiding (version)
 
-pkgbuildURI :: String -> URI
-pkgbuildURI pkg =
-    URI "http:"
-        (Just $ URIAuth "" "aur.archlinux.org" "")
-        ("/packages/" ++ take 2 pkg ++ "/" ++ pkg ++ "/PKGBUILD")
-        ""
-        ""
+pkgbuildURI :: String -> String
+pkgbuildURI pkg = "https://aur.archlinux.org/packages/"
+               ++ take 2 pkg
+               ++ "/"
+               ++ pkg
+               ++ "/PKGBUILD"
 
-pkgbuild :: String -> IO (Maybe String)
-pkgbuild pkg = do
-    resp <- simpleHTTP $ Request (pkgbuildURI pkg) GET [] ""
-    case resp of Right r@(rspCode -> (2, 0, 0)) -> return . Just $ rspBody r
-                 _ -> return Nothing
+pkgbuild :: Manager -> String -> IO (Maybe String)
+pkgbuild mgr pkg = runResourceT $ do
+    req <- parseUrl $ pkgbuildURI pkg
+    resp <- httpLbs req {checkStatus = \_ _ -> Nothing} mgr
+    case responseStatus resp of
+        Status 200 _ -> return . Just $ toString $ responseBody resp
+        _ -> return Nothing
 
-remotePkg :: String -> IO (Maybe Package)
-remotePkg pkg = do
-    mpb <- pkgbuild pkg
+remotePkg :: Manager -> String -> IO (Maybe Package)
+remotePkg mgr pkg = do
+    mpb <- pkgbuild mgr pkg
     return $ mpb >>= \v ->
         if null v then Nothing else parseVer (version v) >>= Just . Pkg pkg . Right
