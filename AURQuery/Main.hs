@@ -67,7 +67,9 @@ main = do
 
     let displayColumns (Pkg name_ ver) = [name_, either id show ver]
     when (ListInstalled `elem` opts) $
-        mapM_ putStrLn (tabulate $ map displayColumns ipkgs) >> exitSuccess
+        mapM_ putStrLn
+              (tabulate $ ["Package", "Version"] : map displayColumns ipkgs)
+            >> exitSuccess
 
     term <-
         setupTermFromEnv
