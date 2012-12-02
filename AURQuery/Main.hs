@@ -88,7 +88,7 @@ main = do
     let whenPrintUnparseable = unless $ OnlyParsableVersions `elem` opts
     bracket (newManager def) closeManager $ \httpMgr -> do
         putStrLn "Downloading AUR package info..."
-        lineSpecs <- execWriterT $ forM ipkgs $ \(Pkg pname e_lv) -> do
+        lineSpecs <- execWriterT $ forM_ ipkgs $ \(Pkg pname e_lv) -> do
 
             let printPkgVersionChange color localVer remoteVer =
                     when (localVer /= remoteVer && not (isVCSPackage pname)) $
