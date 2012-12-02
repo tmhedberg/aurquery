@@ -82,7 +82,7 @@ main = do
                  , isatty
                  ) of
                 (Just wfg, False, True) ->
-                    runTermOutput term . termText . wfg c $ s ++"\n"
+                    runTermOutput term . termText . wfg c $ s ++ "\n"
                 _ -> putStrLn s
 
     let whenPrintUnparseable = unless $ OnlyParsableVersions `elem` opts
