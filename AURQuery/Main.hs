@@ -124,7 +124,7 @@ isVCSPackage :: String -> Bool
 isVCSPackage pname = any (flip isSuffixOf pname . ('-':)) vcsSuffixes
 
 tabulate :: [[String]] -> [String]
-tabulate rows = map (padColumns columnWidths) $ equalLengthRows
+tabulate rows = map (padColumns columnWidths) equalLengthRows
     where columnWidths = collapseMax $ map (map length) equalLengthRows
           collapseMax = foldl (zipWith max) (repeat 0)
           padColumns ws = intercalate "  " . zipWith pad ws
