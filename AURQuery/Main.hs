@@ -62,6 +62,7 @@ main = do
                         usageInfo ("Usage: " ++ pn ++ " [<options>]") options)
             >> exitSuccess
 
+    putStrLn "Obtaining local package info..."
     ipkgs <- installedPkgs $ getAURDirOpt opts
     when (ListInstalled `elem` opts) (mapM print ipkgs >> exitSuccess)
 
@@ -81,6 +82,7 @@ main = do
 
     let whenPrintUnparseable = unless $ OnlyParsableVersions `elem` opts
     bracket (newManager def) closeManager $ \httpMgr -> do
+        putStrLn "Downloading AUR package info..."
         lineSpecs <- execWriterT $ forM ipkgs $ \(Pkg pname e_lv) -> do
 
             let printPkgVersionChange color localVer remoteVer =
