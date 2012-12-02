@@ -103,7 +103,8 @@ main = do
                                           (show lv)
                                           (show rv)
 
-        mapM_ printLineSpec $ uncurry zip $ first tabulate $ unzip lineSpecs
+        mapM_ printLineSpec $ uncurry zip $ first tabulate $
+            unzip ((["Package", "Old Version", "New Version"], White):lineSpecs)
 
 verDeltaColor :: TaggedVersion -> TaggedVersion -> Color
 verDeltaColor lv rv | gton getEpoch = Red
