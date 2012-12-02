@@ -64,7 +64,10 @@ main = do
 
     putStrLn "Obtaining local package info..."
     ipkgs <- installedPkgs $ getAURDirOpt opts
-    when (ListInstalled `elem` opts) (mapM print ipkgs >> exitSuccess)
+
+    let displayColumns (Pkg name_ ver) = [name_, either id show ver]
+    when (ListInstalled `elem` opts) $
+        mapM_ putStrLn (tabulate $ map displayColumns ipkgs) >> exitSuccess
 
     term <-
         setupTermFromEnv
