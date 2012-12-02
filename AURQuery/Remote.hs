@@ -33,6 +33,4 @@ remotePkg mgr pkg = do
             if null v
                 then Nothing
                 else Just . Pkg pkg $ let ver = version v
-                                      in maybe (Left $ ver)
-                                               Right
-                                               (parseVer $ ver)
+                                      in maybe (Left ver) Right (parseVer ver)

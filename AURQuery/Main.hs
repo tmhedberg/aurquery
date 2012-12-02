@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 import Control.Arrow
 import Control.Exception
 import Control.Monad
@@ -48,8 +50,7 @@ data Option = AURDir String
     deriving Eq
 
 getAURDirOpt :: [Option] -> Maybe String
-getAURDirOpt = listToMaybe . catMaybes . map (\o -> case o of AURDir s -> Just s
-                                                              _ -> Nothing)
+getAURDirOpt = listToMaybe . mapMaybe (\case AURDir s -> Just s; _ -> Nothing)
 
 main = do
 
