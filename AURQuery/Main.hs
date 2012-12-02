@@ -9,7 +9,7 @@ import Data.Maybe
 import Network.HTTP.Conduit
 
 import System.Console.GetOpt
-import System.Console.Terminfo
+import System.Console.Terminfo hiding (row)
 import System.Environment
 import System.Exit
 import System.IO
@@ -115,3 +115,12 @@ verDeltaColor lv rv | gton getEpoch = Red
 
 isVCSPackage :: String -> Bool
 isVCSPackage pname = any (flip isSuffixOf pname . ('-':)) vcsSuffixes
+
+tabluate :: [[String]] -> [String]
+tabluate rows = map (padColumns columnWidths) $ equalLengthRows
+    where columnWidths = collapseMax $ map (map length) equalLengthRows
+          collapseMax = foldl (zipWith max) (repeat 0)
+          padColumns ws = intercalate "  " . zipWith pad ws
+          pad w s = s ++ replicate (w - length s) ' '
+          equalLengthRows = map (extendRow $ maximum $ map length rows) rows
+          extendRow len row = row ++ replicate (len - length row) ""
