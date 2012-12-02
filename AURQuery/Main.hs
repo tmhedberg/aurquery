@@ -1,5 +1,7 @@
+import Control.Arrow
 import Control.Exception
 import Control.Monad
+import Control.Monad.Writer
 
 import Data.Default
 import Data.Function
@@ -68,32 +70,27 @@ main = do
             `catch` ((const $ setupTerm "dumb")
                          :: SetupTermError -> IO Terminal)
     isatty <- hIsTerminalDevice stdout
-    let printColor c =
+    let printLineSpec (s, c) =
             case ( getCapability term withForegroundColor
                  , NoColor `elem` opts
                  , isatty
                  ) of
                 (Just wfg, False, True) ->
-                    runTermOutput term . termText . wfg c . (++"\n")
-                _ -> putStrLn
+                    runTermOutput term . termText . wfg c $ s ++"\n"
+                _ -> putStrLn s
 
     let whenPrintUnparseable = unless $ OnlyParsableVersions `elem` opts
-    bracket (newManager def) closeManager $ \httpMgr ->
-        forM_ ipkgs $ \(Pkg pname e_lv) -> do
+    bracket (newManager def) closeManager $ \httpMgr -> do
+        lineSpecs <- execWriterT $ forM ipkgs $ \(Pkg pname e_lv) -> do
 
             let printPkgVersionChange color localVer remoteVer =
                     when (localVer /= remoteVer && not (isVCSPackage pname)) $
-                        printColor color $ pname
-                                        ++ " ("
-                                        ++ localVer
-                                        ++ " -> "
-                                        ++ remoteVer
-                                        ++ ")"
+                        tell [([pname, localVer, remoteVer], color)]
 
-            mrp <- remotePkg httpMgr pname
+            mrp <- liftIO $ remotePkg httpMgr pname
 
             case (mrp, e_lv) of
-                (Nothing, _) -> putStrLn $ pname ++ ": NOT FOUND"
+                (Nothing, _) -> liftIO $ putStrLn $ pname ++ ": NOT FOUND"
                 (Just (Pkg _ (Left rvStr)), Left lvStr) ->
                     whenPrintUnparseable $
                         printPkgVersionChange White lvStr rvStr
@@ -106,6 +103,8 @@ main = do
                                           (show lv)
                                           (show rv)
 
+        mapM_ printLineSpec $ uncurry zip $ first tabulate $ unzip lineSpecs
+
 verDeltaColor :: TaggedVersion -> TaggedVersion -> Color
 verDeltaColor lv rv | gton getEpoch = Red
                     | gton majVer = Yellow
@@ -116,8 +115,8 @@ verDeltaColor lv rv | gton getEpoch = Red
 isVCSPackage :: String -> Bool
 isVCSPackage pname = any (flip isSuffixOf pname . ('-':)) vcsSuffixes
 
-tabluate :: [[String]] -> [String]
-tabluate rows = map (padColumns columnWidths) $ equalLengthRows
+tabulate :: [[String]] -> [String]
+tabulate rows = map (padColumns columnWidths) $ equalLengthRows
     where columnWidths = collapseMax $ map (map length) equalLengthRows
           collapseMax = foldl (zipWith max) (repeat 0)
           padColumns ws = intercalate "  " . zipWith pad ws

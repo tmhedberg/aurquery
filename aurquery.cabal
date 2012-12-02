@@ -49,7 +49,7 @@ Executable aurquery
   
   -- Packages needed in order to build this package.
   Build-depends: base >= 4 && < 5, data-default, directory, failure, filepath,
-                 http-conduit, http-types, network, process, resourcet,
+                 http-conduit, http-types, mtl, network, process, resourcet,
                  terminfo, transformers, utf8-string
   
   -- Modules not exported by this package.
